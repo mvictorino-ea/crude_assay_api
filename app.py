@@ -2,12 +2,102 @@ from flask import Flask, request, jsonify
 import os
 import psycopg2
 from dotenv import load_dotenv
+import pandas as pd
+import numpy as np
 
 # Load .env file
 load_dotenv()
 
 # Initialize App
 app = Flask(__name__)
+
+# Set URL to connect to Database
+database_url = os.getenv("DATABASE_URL")
+
+
+# Welcome message
+@app.route('/')
+def index():
+    return "<h1>Welcome to the Crude Assay API.</h1>"
+
+
+@app.route('/api/v1/crude_blend', methods=['GET'])
+def crude_blend():
+    response = {}
+
+    # Retrieve arguments
+    ids = request.args.get('ids', None)
+    volumes = request.args.get('volumes', None)
+
+    if ids is None or volumes is None:
+        response["ERROR"] = "Missing required fields: ids or volumes."
+        return response, 500
+
+    # Transform into list
+    ids = ids.split(',')
+    volumes = volumes.split(',')
+
+    # Prepare ids to be used in WHERE clause
+    crude_ids = ', '.join([f"'{str(x)}'" for x in ids])
+
+    # Transform volume into list of numbers
+    try:
+        volumes = np.array(volumes, dtype=float)
+    except Exception as e:
+        response['ERROR'] = 'Volumes must be a number.'
+        return response, 500
+
+    # Make sure ids and volumes have same length
+    if len(ids) != len(volumes):
+        response["ERROR"] = "Length of parameters do not match."
+        return response, 500
+
+    ### Actually performi Blending operation
+    # Connect to database
+    conn = psycopg2.connect(os.getenv('DATABASE_URL'))
+
+    query = f"""SELECT c.id, c.name, c2.product_name, p."yield_weight_%", c2."cut_start_C"
+                FROM crudes AS c
+                INNER JOIN products p
+                    ON c.id = p.crude_id
+                INNER JOIN categories c2
+                    ON p.category_id = c2.id
+                WHERE c.id IN ({crude_ids})
+                    AND c.recommended IS TRUE
+                    AND c2.include_in_sum_yields IS TRUE
+                ORDER BY c.id, c2."cut_start_C" ASC"""
+    df = pd.read_sql_query(query, conn)
+
+    # Rearrange dataframe
+    df = df.set_index(["id", "name", 'product_name'])['yield_weight_%'].unstack().reset_index()
+
+    # Reorder columns to match expected result
+    product_name_order = ['light_gasoline', 'light_naphtha', 'heavy_naphtha', 'kerosene', 'atm_gas_oil',
+                          'light_vac_gas_oil', 'heavy_vac_gas_oil', 'vac_residue']
+    column_order = ['id', 'name'] + product_name_order
+
+    df = df[column_order]
+
+    # Keep only yields
+    yields = df.iloc[:, 2:]
+
+    # Weighted average
+    crude_blend = np.average(yields, weights=volumes, axis=0)
+
+    # Store result in dataframe for easier export
+    df_blended = pd.DataFrame(columns=product_name_order)
+    df_blended.loc[0] = crude_blend
+
+    # Final response to be returned
+    response = df_blended.iloc[0].to_dict()
+
+    # Close connection
+    conn.close()
+
+    # Uncomment for debugging
+    # return f'{df.to_html()} <br> {df_blended.to_html()}'
+
+    return response, 200
 
 
 @app.route('/getmsg/', methods=['GET'])
@@ -51,12 +141,14 @@ def post_something():
         })
 
 
-# A welcome message to test our server
-@app.route('/')
-def index():
-    return "<h1>Welcome to our server !!</h1>"
+@app.errorhandler(404)
+def page_not_found(e):
+    return "<h1>404</h1><p>The resource could not be found.</p>", 404
 
 
 if __name__ == '__main__':
     # Threaded option to enable multiple instances for multiple user access support
-    app.run(threaded=True)
+    if os.getenv('ENVIRONMENT') == 'production':
+        app.run(threaded=True)
+    else:
+        app.run(threaded=True, debug=True)
