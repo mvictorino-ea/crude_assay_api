@@ -1,17 +1,15 @@
-#![Python application](https://github.com/mvictorino-ea/crude_assay_db/workflows/Python%20application/badge.svg?branch=master)
-
 # REST API: Heroku + Flask
-Additional to the Crude Assay Databse Web Application, this API will serve data from the database to other users (Excel).
+Additional to the Crude Assay Database Web Application, this API will serve data from the database to other users (Excel).
 
 # Required files to deploy to Heroku
 ### 1) Procfile
 Tells Heroku what to do.
 
-`web: gunicorn && app: app`
+`web: gunicorn app:app`
 
-Start the GUnicorn server and serve the Flask app.py file
+Start the GUnicorn server and serve the Flask *app* (shortcut for application), in this case, `app.py`.
 
-### 2) Requirements.txt (or Pifile)
+### 2) Requirements.txt (or Pipfile)
 By default, newly created Python apps in Heroku will use the python-3.6.10 runtime (as of March 2020). You can specify
 the Python runtime version to be used in order to have more control. See below for instructions.
 
@@ -46,5 +44,14 @@ worked for me, with a tiny difference in the `DATABASE_URL` variable:
 + On Heroku, under the **settings** tab, set config vars (environment variable):
 `DATABASE_URL=postgresql://{user}:{password}@{host}:{port}/{dbname}?ssl=true&sslrootcert={root_certificate_name}`
 
-Then you can use the `database_url = os.getenv(DATABASE_URL)` to create a connection in the code, `conn = psycopg2(database_url)`.
+Then you can use the `database_url = os.getenv("DATABASE_URL")` to create a connection in the code, `conn = psycopg2.connect(os.getenv('DATABASE_URL'))`.
 This `conn` feeds into the `pandas.read_sql_query`.
+
+> Note: the environment variable "DATABASE_URL" is stored in Heroku under Settings > Config Vars 
+
+
+### 4) Excel Function Example
+More information regarding the Excel function can be found in [the documentation]()
+
+- [ ] TODO: add link to Excel documentation
+- [ ] TODO: add brief example using Excel function
