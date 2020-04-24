@@ -1,0 +1,95 @@
+' created by: MVictorino
+' date: 15/04/2020
+
+' Makes API call, using Crude IDS and Volumes as input
+
+Function crudeBlend(Crude_IDs As String, Crude_Volumes As String) As Variant
+
+' Prepare input
+Dim cell As Range
+Dim i As Integer
+
+i = 0
+
+'For Each cell In rng
+    'i = i + 1
+    'If i = 1 Then
+        'crudeAssayDB = "'" & cell & "'"
+    'Else
+        'crudeAssayDB = crudeAssayDB & ", '" & cell & "'"
+    'End If
+'Next cell
+
+
+' Prepare API call
+Dim request As MSXML2.XMLHTTP60 'Note: required to activate Tools>Reference>Microsoft XML v60
+Set request = New MSXML2.XMLHTTP60
+
+    'Define URL components
+    base_url = "https://crude-assay-api.herokuapp.com"
+    endpoint = "/api/v1/crude_blend?"
+
+    param_ids = "ids="
+    param_ids_value = Crude_IDs
+
+    param_volumes = "&volumes="
+    param_volumes_value = Crude_Volumes
+
+    api_url = base_url + endpoint + param_ids + param_ids_value + param_volumes + param_volumes_value
+    Debug.Print api_url
+
+    'Open request
+    request.Open bstrMethod:="GET", bstrURL:=api_url
+
+    'Send GET request
+    request.send
+
+    'Print result
+    Debug.Print "The request was " + CStr(request.Status)
+    Debug.Print CStr(request.responseText)
+
+    Dim Json As Object
+    'Dim result As Dictionary
+
+    'Parse the JSON response
+    Set Json = JsonConverter.ParseJson(request.responseText)
+
+    Dim result(7) As Variant
+
+    'Results in ascending order, based on Cut Start Celsius
+    ' Force converting to Decimal data type
+
+    result(0) = CDec(Json("light_gasoline"))
+    result(1) = CDec(Json("light_naphtha"))
+    result(2) = CDec(Json("heavy_naphtha"))
+    result(3) = CDec(Json("kerosene"))
+    result(4) = CDec(Json("atm_gas_oil"))
+    result(5) = CDec(Json("light_vac_gas_oil"))
+    result(6) = CDec(Json("heavy_vac_gas_oil"))
+    result(7) = CDec(Json("vac_residue"))
+
+    crudeBlend = result
+
+End Function
+
+''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+' Run macro to update function documentation
+Sub addDescription()
+
+'Prepare description
+Dim sFunctionName As String
+Dim sFunctionCategory As String
+Dim sFunctionDescription As String
+Dim aFunctionArguments(1 To 2) As String
+
+sFunctionName = "crudeBlend"
+sFunctionCategory = 9 'Information
+sFunctionDescription = "Promote Crude Blending, returning resulting yields per product"
+aFunctionArguments(1) = "List of Crude IDs, based on Crude Assay db, separated by comma"
+aFunctionArguments(2) = "List of volume (or proportion) of each respective Crude, separated by comma"
+
+'Add documentation to function
+Application.MacroOptions Macro:=sFunctionName, Description:=sFunctionDescription, Category:=sFunctionCategory, ArgumentDescriptions:=aFunctionArguments
+
+End Sub
