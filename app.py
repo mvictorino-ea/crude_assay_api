@@ -54,27 +54,29 @@ def crude_blend():
 
     ### Actually performi Blending operation
     # Connect to database
-    conn = psycopg2.connect(os.getenv('DATABASE_URL'))
+    conn = psycopg2.connect(os.getenv('DATABASE_URL_PROD'))
 
-    query = f"""SELECT c.id, c.name, c2.product_name, p."yield_weight_%", c2."cut_start_C"
-                FROM crudes AS c
-                INNER JOIN products p
-                    ON c.id = p.crude_id
-                INNER JOIN categories c2
-                    ON p.category_id = c2.id
-                WHERE c.id IN ({crude_ids})
-                    AND c.recommended IS TRUE
-                    AND c2.include_in_sum_yields IS TRUE
-                ORDER BY c.id, c2."cut_start_C" ASC"""
+    query = f"""SELECT c.crude_id, c.name, p.product_name, a."yield_w_%", p."cut_start_C"
+                FROM crude AS c
+                INNER JOIN assay AS a
+                    ON c.crude_id = a.crude_id
+                INNER JOIN product p ON a.product_id = p.product_id
+
+                WHERE c.crude_id IN ({crude_ids})
+                    AND a.recommended IS TRUE
+                    AND p.include_in_sum_yields IS TRUE
+                ORDER BY c.crude_id, p."cut_start_C" ASC"""
+
+    # Results from query
     df = pd.read_sql_query(query, conn)
 
     # Rearrange dataframe
-    df = df.set_index(["id", "name", 'product_name'])['yield_weight_%'].unstack().reset_index()
+    df = df.set_index(["crude_id", "name", 'product_name'])['yield_w_%'].unstack().reset_index()
 
     # Reorder columns to match expected result
     product_name_order = ['light_gasoline', 'light_naphtha', 'heavy_naphtha', 'kerosene', 'atm_gas_oil',
                           'light_vac_gas_oil', 'heavy_vac_gas_oil', 'vac_residue']
-    column_order = ['id', 'name'] + product_name_order
+    column_order = ['crude_id', 'name'] + product_name_order
 
     df = df[column_order]
 
