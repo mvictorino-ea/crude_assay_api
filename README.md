@@ -52,6 +52,3 @@ This `conn` feeds into the `pandas.read_sql_query`.
 
 ### 4) Excel Function Example
 More information regarding the Excel function can be found in [the documentation](https://github.com/mvictorino-ea/crude_assay_api/blob/master/Excel_VBA/documentation_VBA.md)
-
-- [ ] TODO: add link to Excel documentation
-- [ ] TODO: add brief example using Excel function
