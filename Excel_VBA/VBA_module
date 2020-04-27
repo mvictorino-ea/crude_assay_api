@@ -54,7 +54,7 @@ Set request = New MSXML2.XMLHTTP60
     'Parse the JSON response
     Set Json = JsonConverter.ParseJson(request.responseText)
 
-    Dim result(7) As Variant
+    Dim result(8) As Variant
 
     ' If error (500)
     If request.Status = "500" Then
@@ -67,6 +67,7 @@ Set request = New MSXML2.XMLHTTP60
         result(5) = "Error"
         result(6) = "Error"
         result(7) = "Error"
+        result(8) = "Error"
     End If
 
     If request.Status = "200" Then
@@ -82,6 +83,7 @@ Set request = New MSXML2.XMLHTTP60
         result(5) = CDec(Json("light_vac_gas_oil"))
         result(6) = CDec(Json("heavy_vac_gas_oil"))
         result(7) = CDec(Json("vac_residue"))
+        result(8) = CDec(Json("conversion_factor"))
 
     End If
     ' Return retult (error msg or Blended Values)
