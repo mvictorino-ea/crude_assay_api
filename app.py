@@ -15,6 +15,11 @@ app = Flask(__name__)
 database_url = os.getenv("DATABASE_URL")
 
 
+def api_to_conversion_factor(api):
+    """Convert from API to Conversion Factor"""
+    cf = 6.28981 / (141.5/(api + 131.5))
+    return cf
+
 # Welcome message
 @app.route('/')
 def index():
@@ -56,7 +61,7 @@ def crude_blend():
     # Connect to database
     conn = psycopg2.connect(os.getenv('DATABASE_URL_PROD'))
 
-    query = f"""SELECT c.crude_id, c.name, p.product_name, a."yield_w_%", p."cut_start_C"
+    query_yield = f"""SELECT c.crude_id, c.name, p.product_name, a."yield_w_%", p."cut_start_C"
                 FROM crude AS c
                 INNER JOIN assay AS a
                     ON c.crude_id = a.crude_id
@@ -68,7 +73,7 @@ def crude_blend():
                 ORDER BY c.crude_id, p."cut_start_C" ASC"""
 
     # Results from query
-    df = pd.read_sql_query(query, conn)
+    df = pd.read_sql_query(query_yield, conn)
 
     # Check if Crude ID has been found in Database
     crude_ids_identified = df.crude_id.unique()
@@ -98,9 +103,43 @@ def crude_blend():
     # Weighted average
     crude_blend = np.average(yields, weights=volumes, axis=0)
 
+    # Blending API and Sulphur Total %
+    query_attributes = f"""SELECT c.crude_id, c.name, a.api, a."sulphur_total_%"
+                        FROM crude AS c
+                        INNER JOIN assay AS a
+                            ON c.crude_id = a.crude_id
+                        INNER JOIN product p ON a.product_id = p.product_id
+
+                        WHERE c.crude_id IN ({crude_ids})
+                            AND a.recommended IS TRUE
+                            AND p.product_name = 'whole_crude'
+                        ORDER BY c.crude_id, p."cut_start_C" ASC"""
+
+    # Results from query
+    whole_crude_attributes = pd.read_sql_query(query_attributes, conn)
+
+    # column_order = ['crude_id', 'name', 'api', 'sulphur_total_%']
+    #
+    # whole_crude_attributes = whole_crude_attributes[column_order]
+
+    # Keep only attributes
+    whole_crude_attributes = whole_crude_attributes[['api', 'sulphur_total_%']]
+
+    # Weighted average
+    whole_crude_attributes_blend = np.average(whole_crude_attributes, weights=volumes, axis=0)
+
+    api, sulphur_total = whole_crude_attributes_blend[0], whole_crude_attributes_blend[1]
+
     # Store result in dataframe for easier export
     df_blended = pd.DataFrame(columns=product_name_order)
     df_blended.loc[0] = crude_blend
+
+    # Add Blended whole crude attributes
+    df_blended.loc[0, 'api'] = api
+
+    df_blended.loc[0, 'sulphur_total_%'] = sulphur_total
+
+    df_blended.loc[0, 'conversion_factor'] = api_to_conversion_factor(api)
 
     # Final response to be returned
     response = df_blended.iloc[0].to_dict()
@@ -109,7 +148,7 @@ def crude_blend():
     conn.close()
 
     # Uncomment for debugging
-    # return f'{df.to_html()} <br> {df_blended.to_html()}'
+    # return f'{df.to_html()} <br> {whole_crude_attributes.to_html()} <br> {df_blended.to_html()}'
 
     return response, 200
 
