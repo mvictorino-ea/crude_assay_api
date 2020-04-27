@@ -78,7 +78,8 @@ def crude_blend():
         for id in ids:
             if int(id) not in crude_ids_identified:
                 id_not_found.append(id)
-        response['ERROR'] = f'Error: Crude ID not found in database: {id_not_found}'
+        response['ERROR'] = f'Error: No recommended data found for the following Crude ID: {id_not_found}'
+
         return response, 500
 
     # Rearrange dataframe
