@@ -56,25 +56,38 @@ Set request = New MSXML2.XMLHTTP60
 
     Dim result(7) As Variant
 
-    'Results in ascending order, based on Cut Start Celsius
-    ' Force converting to Decimal data type
+    ' If error (500)
+    If request.Status = "500" Then
 
-    result(0) = CDec(Json("light_gasoline"))
-    result(1) = CDec(Json("light_naphtha"))
-    result(2) = CDec(Json("heavy_naphtha"))
-    result(3) = CDec(Json("kerosene"))
-    result(4) = CDec(Json("atm_gas_oil"))
-    result(5) = CDec(Json("light_vac_gas_oil"))
-    result(6) = CDec(Json("heavy_vac_gas_oil"))
-    result(7) = CDec(Json("vac_residue"))
+        result(0) = CStr(Json("ERROR"))
+        result(1) = "Error"
+        result(2) = "Error"
+        result(3) = "Error"
+        result(4) = "Error"
+        result(5) = "Error"
+        result(6) = "Error"
+        result(7) = "Error"
+    End If
 
+    If request.Status = "200" Then
+
+        'Results in ascending order, based on Cut Start Celsius
+        ' Force converting to Decimal data type
+
+        result(0) = CDec(Json("light_gasoline"))
+        result(1) = CDec(Json("light_naphtha"))
+        result(2) = CDec(Json("heavy_naphtha"))
+        result(3) = CDec(Json("kerosene"))
+        result(4) = CDec(Json("atm_gas_oil"))
+        result(5) = CDec(Json("light_vac_gas_oil"))
+        result(6) = CDec(Json("heavy_vac_gas_oil"))
+        result(7) = CDec(Json("vac_residue"))
+
+    End If
+    ' Return retult (error msg or Blended Values)
     crudeBlend = result
 
 End Function
-
-''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
-
-' Run macro to update function documentation
 Sub addDescription()
 
 'Prepare description
