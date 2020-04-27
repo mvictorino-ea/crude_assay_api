@@ -26,7 +26,7 @@ In order to parse JSON, it is required to install an additional open-source modu
 > Note: the macro-enabled spreadsheet file will be self-sufficient, containing all the necessary modules/code
 
 ### Usage Example
-The created function, `crudeAssayDB()`, requires two lists of parameters:
+The created function, `crudeBlend()`, requires two lists of parameters:
 + **Crude Identifiers**: list of Crude IDs, from the Crude Assay db, separated by comma
 + **Crude Volumes** (or Proportion): list of volume for each respective Crude, separated by comma
 
