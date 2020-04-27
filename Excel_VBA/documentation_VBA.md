@@ -7,14 +7,12 @@ This documentation describes the required steps to create a function in Excel th
 ## Requirements
 There are some extra steps required when working with VBA to allow it to accept the following:
 1. Send/receive URL REQUEST
-1. Work with dictionary (key-value pairs)
 1. Parse JSON (additional open-source module)
 
 #### Activate native Tools
 Under the VBA editor: `Tools` > `References`
 Make sure to check the following *Available References*:
 + `Microsoft XML, v6.0` (send URL request)
-+ `Microsfot Scripting Runtime` (work with dictionary)
 
 #### Add external Module
 In order to parse JSON, it is required to install an additional open-source module: [VBA-JSON](https://github.com/VBA-tools/VBA-JSON)
