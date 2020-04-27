@@ -52,7 +52,7 @@ def crude_blend():
         response["ERROR"] = "Length of parameters do not match."
         return response, 500
 
-    ### Actually performi Blending operation
+    ### Actually perform Blending operation
     # Connect to database
     conn = psycopg2.connect(os.getenv('DATABASE_URL_PROD'))
 
@@ -69,6 +69,17 @@ def crude_blend():
 
     # Results from query
     df = pd.read_sql_query(query, conn)
+
+    # Check if Crude ID has been found in Database
+    crude_ids_identified = df.crude_id.unique()
+
+    id_not_found = []
+    if len(crude_ids_identified) < len(ids):
+        for id in ids:
+            if int(id) not in crude_ids_identified:
+                id_not_found.append(id)
+        response['ERROR'] = f'Error: Crude ID not found in database: {id_not_found}'
+        return response, 500
 
     # Rearrange dataframe
     df = df.set_index(["crude_id", "name", 'product_name'])['yield_w_%'].unstack().reset_index()
