@@ -35,7 +35,7 @@ def crude_blend():
     volumes = request.args.get('volumes', None)
 
     if ids is None or volumes is None:
-        response["ERROR"] = "Missing required fields: ids or volumes."
+        response["ERROR"] = "Error: Missing required fields: ids or volumes."
         return response, 500
 
     # Transform into list
@@ -54,7 +54,7 @@ def crude_blend():
 
     # Make sure ids and volumes have same length
     if len(ids) != len(volumes):
-        response["ERROR"] = "Length of parameters do not match."
+        response["ERROR"] = "Error: Length of parameters do not match."
         return response, 500
 
     ### Actually perform Blending operation
