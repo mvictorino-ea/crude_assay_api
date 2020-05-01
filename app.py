@@ -42,20 +42,36 @@ def crude_blend():
     ids = ids.split(',')
     volumes = volumes.split(',')
 
-    # Prepare ids to be used in WHERE clause
-    crude_ids = ', '.join([f"'{str(x)}'" for x in ids])
-
     # Transform volume into list of numbers
     try:
         volumes = np.array(volumes, dtype=float)
     except Exception as e:
-        response['ERROR'] = 'Volumes must be a number.'
+        response['ERROR'] = 'Error: Volumes must be a number.'
+        return response, 500
+
+    # Transform ids into list of integers
+    try:
+        ids = np.array(ids, dtype=int)
+    except Exception as e:
+        response['ERROR'] = 'Error: Crude IDs must be a number.'
         return response, 500
 
     # Make sure ids and volumes have same length
     if len(ids) != len(volumes):
         response["ERROR"] = "Error: Length of parameters do not match."
         return response, 500
+
+    # Create Dataframe with requested parameters
+    df = pd.DataFrame({'id': ids, 'volume': volumes})
+    # Aggregate over ID (allow duplicate IDS)
+    df_aggregated = df.groupby('id').sum().reset_index()
+
+    # Return list of IDS and respective Volumes
+    ids = df_aggregated['id'].values
+    volumes = df_aggregated['volume'].values
+
+    # Prepare ids to be used in WHERE clause
+    crude_ids = ', '.join([f"'{str(x)}'" for x in ids])
 
     ### Actually perform Blending operation
     # Connect to database
