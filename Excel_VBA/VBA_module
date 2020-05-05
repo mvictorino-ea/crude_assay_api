@@ -56,8 +56,8 @@ Set request = New MSXML2.XMLHTTP60
 
     Dim result(8) As Variant
 
-    ' If error (500)
-    If request.Status = "500" Then
+    ' If error (400)
+    If request.Status = "400" Then
 
         result(0) = CStr(Json("ERROR"))
         result(1) = "Error"
