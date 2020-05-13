@@ -12,10 +12,7 @@ api = Namespace('crude_supply', description='Crude Oil Supply data service')
 parser_crude_supply_get = api.parser()
 
 # Define Endpoint Expected Parameters
-# TODO: use only country, expecting country_isos
-parser_crude_supply_get.add_argument('country', type=str, required=False, help='Algeria OR Algeria,Congo,...')
-parser_crude_supply_get.add_argument('country_iso', type=str, required=False, help='DZ OR DZ,CG,...')
-parser_crude_supply_get.add_argument('region', type=str, required=False, help='AFR OR AFR,ME,...')
+parser_crude_supply_get.add_argument('countries', type=str, required=False, help='DZ OR DZ,CG,...')
 parser_crude_supply_get.add_argument('date_from', type=str, required=False, help='2017-01-01 OR -2y')
 parser_crude_supply_get.add_argument('date_to', type=str, required=False, help='2030-01-01 OR +3M')
 
@@ -60,24 +57,13 @@ class Crude(Resource, Base):
 
         # Retrieve arguments
         args = parser_crude_supply_get.parse_args()
-        country = args.get('country', None)
-        country_iso = args['country_iso']
-        region = args['region']
+        countries = args['countries']
         date_from = args.get('date_from')
         date_to = args['date_to']
 
-        # Check at least one identifier has been provided
-        if not (country or country_iso or region):
-            self.response['ERROR'] = 'Error: at least one identifier is required (country, country_iso, region)', 400
-
         # Set Identifier Precedence
-        if country_iso:
-            param_identifier = f' country_iso=({country_iso})'
-        elif country:
-            param_identifier = f' country=({country})'
-
-        elif region:
-            param_identifier = f' region=({region})'
+        if countries:
+            param_identifier = f' country_iso=({countries})'
 
         # Set date range - Date From
         if date_from:
@@ -116,34 +102,4 @@ class Crude(Resource, Base):
         # Format dataframe into JSON
         self.response = df.to_json(orient='columns', date_format='iso', indent=2)
 
-        # TODO: DEBUGGING
-        print(self.response)
-
         return self.response, 200
-
-
-# api = Base()
-#
-# param = (r' country=(Algeria)'
-#          r'@df:2018-01-01 @dt:2019-12-01')
-#
-# sid = api.base_sid + param
-#
-# # Retrieve multiple results/series
-# fields, points = [], []
-# for s in api.sj.scroll(sid, fields=api.fields, max_points=-1, serializer=shooju.points_serializers.pd_series):
-#     fields.append(s.get('fields'))
-#     points.append(s.get('points'))
-#
-# # Group multiple series in a Dataframe
-# # Points
-# df_points = pd.concat(points, axis=1)
-#
-# # Series
-# df_fields = pd.DataFrame(fields).T  # Transpose
-#
-# df = pd.concat([df_fields, df_points])
-# # Rename Columns
-# df.columns = [x['country'] for x in fields]
-#
-# pass
