@@ -2,6 +2,7 @@
 
 from flask_restx import Api
 from apis.crude_assay import api as crude_assay
+from apis.crude_supply import api as crude_supply
 # from .namespace2 import api as ns2
 # ...
 # from .namespaceX import api as nsX
@@ -10,13 +11,14 @@ from apis.crude_assay import api as crude_assay
 # Define actual API object
 api = Api(
     title='Crude Assay db',
-    version='1.0',
+    version='1.1',
     description='Crude Assay Database Operations',
     # All API metadatas
 )
 
 # Register all namespaces in the actual API
 api.add_namespace(crude_assay, path='/api/v1')  # define custom url_prefix, allowing multiple versions
+api.add_namespace(crude_supply, path='/api/v1')
 # api.add_namespace(ns2, path='/api/v1')
 # ...
 # api.add_namespace(nsX, path='/api/v1')
