@@ -64,7 +64,7 @@ class Crude(Resource, Base):
 
         # Set Identifier Precedence
         if countries:
-            param_identifier = f' country_iso=({countries})'
+            param_identifier = f' country_iso=({countries.upper()})'
 
         # Set date range - Date From
         if date_from:
