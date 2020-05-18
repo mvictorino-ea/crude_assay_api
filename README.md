@@ -1,7 +1,14 @@
 # REST API: Heroku + Flask
 Additional to the Crude Assay Database Web Application, this API will serve data from the database to other users (Excel).
 
-# Required files to deploy to Heroku
+Here are some reference articles/docs used to guide the code refactoring:
++ [Well structured and Extensible API](https://preslav.me/2018/12/02/designing-well-structured-rest-apis-with-flask-restplus-part-1/)
++ [Request Parsing](https://flask-restx.readthedocs.io/en/latest/parsing.html)
++ [Project Structure/Layout](https://flask-restx.readthedocs.io/en/latest/scaling.html)
++ [12-Factor App](https://12factor.net/) 
+
+<hr>
+# Deployment Instructions (Heroku)
 ### 1) Procfile
 Tells Heroku what to do.
 
