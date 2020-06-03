@@ -153,6 +153,11 @@ class CrudeBlend(Resource, Base):
             response['ERROR'] = 'Error: Volumes must be a number.'
             return response, 400
 
+        # Edge-case: warning that all volumes are zero
+        if sum(volumes) == 0:
+            response['ERROR'] = 'Warning: All volumes are zero.'
+            return response, 400
+
         # Transform ids into list of integers
         try:
             ids = np.array(ids, dtype=int)
